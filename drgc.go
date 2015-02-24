@@ -181,7 +181,7 @@ func moveImage(image_path string) bool {
 		return false
 	}
 	if !dry_run {
-		if err := os.Remove(src); err != nil {
+		if err := os.RemoveAll(src); err != nil {
 			fmt.Println("Failed to remove", src, ":", err)
 		}
 	} else {
