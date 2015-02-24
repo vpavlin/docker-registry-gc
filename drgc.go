@@ -55,7 +55,7 @@ func main() {
 	for _, i := range image_list {
 		_, found := all_used_images.set[i]
 		if !found {
-			fmt.Printf("Not found: %v\n", i)
+			fmt.Printf("Unused image: %v\n", i)
 			unused_images = append(unused_images, i)
 			moveImage(i)
 		}
@@ -218,30 +218,30 @@ func updateIndexImages(repository string, image string) bool {
 		}
 		new_index, _ = json.Marshal(index)
 		fmt.Println(string(new_index))
-	}
 
-	index_bckp := path.Join(delete_path, "repositories", repository)
-	err := os.MkdirAll(index_bckp, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	} else {
-		fmt.Println("Created", index_bckp)
-	}
-
-	err = shutil.CopyFile(index_path, path.Join(index_bckp, "_index_images"), false)
-	if err != nil {
-		fmt.Println("Couldn't backup _index_images for", repository, ":", err)
-		return false
-	}
-	if !dry_run {
-		err := ioutil.WriteFile(index_path, new_index, index_stat.Mode())
+		index_bckp := path.Join(delete_path, "repositories", repository)
+		err := os.MkdirAll(index_bckp, 0755)
 		if err != nil {
-			fmt.Println("Failed to write _index_images for", repository, ":", err)
+			fmt.Println(err)
+			os.Exit(1)
+		} else {
+			fmt.Println("Created", index_bckp)
+		}
+
+		err = shutil.CopyFile(index_path, path.Join(index_bckp, "_index_images"), false)
+		if err != nil {
+			fmt.Println("Couldn't backup _index_images for", repository, ":", err)
 			return false
 		}
-	} else {
-		p("Skipping write of new _index_images for", repository)
+		if !dry_run {
+			err := ioutil.WriteFile(index_path, new_index, index_stat.Mode())
+			if err != nil {
+				fmt.Println("Failed to write _index_images for", repository, ":", err)
+				return false
+			}
+		} else {
+			p("Skipping write of new _index_images for", repository)
+		}
 	}
 
 	return true
