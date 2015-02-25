@@ -36,8 +36,8 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Printf("%v\n", registry_path)
-	fmt.Printf("%v\n", delete_path)
+	fmt.Printf("From: %v\n", registry_path)
+	fmt.Printf("To: %v\n", delete_path)
 
 	initDeletePath()
 
@@ -75,7 +75,7 @@ func main() {
 		}
 	}
 	//	fmt.Println(all_images.Keys())
-	fmt.Println(image_names)
+	//  fmt.Println(image_names)
 	getUnusedSize()
 
 }
@@ -187,15 +187,19 @@ func moveImage(image_path string) bool {
 	src := path.Join(registry_path, "images", image_path)
 	dst := path.Join(delete_path, "images", image_path)
 
-	err := shutil.CopyTree(src, dst, nil)
-	if err != nil {
-		fmt.Println("Failed to move", image_path, ":", err)
-		return false
-	}
 	if !dry_run {
+		err := shutil.CopyTree(src, dst, nil)
+		if err != nil {
+			fmt.Println("Failed to move", image_path, ":", err)
+			return false
+		}
 		if err := os.RemoveAll(src); err != nil {
 			fmt.Println("Failed to remove", src, ":", err)
+			return false
+		} else {
+			p("Moving", src)
 		}
+
 	} else {
 		p("Skipping removal of", src)
 	}
@@ -215,7 +219,6 @@ func updateIndexImages(repository string, image string) bool {
 		if len(i.Id) > 0 {
 			if i.Id == image {
 				remove = k
-				println(k, " ", i.Id)
 				break
 			}
 		}
@@ -246,7 +249,7 @@ func updateIndexImages(repository string, image string) bool {
 			return false
 		}
 		if !dry_run {
-			p("Writing _indec_image for", repository)
+			p("Writing _index_image for", repository)
 			err := ioutil.WriteFile(index_path, new_index, index_stat.Mode())
 			if err != nil {
 				fmt.Println("Failed to write _index_images for", repository, ":", err)
@@ -261,7 +264,7 @@ func updateIndexImages(repository string, image string) bool {
 }
 
 func getUnusedSize() {
-	fmt.Println(delete_path)
+	//fmt.Println(delete_path)
 	cmd := fmt.Sprintf("du -hc %v", delete_path)
 	out, _ := exec.Command("sh", "-c", cmd).Output()
 
