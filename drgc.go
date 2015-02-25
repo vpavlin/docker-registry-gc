@@ -15,6 +15,7 @@ var (
 	registry_path = ""
 	delete_path   = ""
 	dry_run       = false
+	load_unused   = false
 )
 
 var used_images []string
@@ -61,8 +62,17 @@ func main() {
 		}
 	}
 
-	for _, name := range image_names {
-		_ = updateIndexImages(name, unused_images[0])
+	if len(unused_images) == 0 && load_unused {
+		fmt.Println("Loading images from delete path")
+		unused_images = getAllImageIds(delete_path)
+	}
+
+	if len(unused_images) > 0 {
+		for _, name := range image_names {
+			for _, image := range unused_images {
+				_ = updateIndexImages(name, image)
+			}
+		}
 	}
 	//	fmt.Println(all_images.Keys())
 	fmt.Println(image_names)
@@ -81,6 +91,8 @@ func init() {
 
 	flag.StringVar(&registry_path, "registry-path", "/var/lib/docker-registry", "Path where your images and metadata are stored")
 	flag.StringVar(&delete_path, "delete-path", "/var/lib/docker-registry-delete", "Path where deleted images and metadata will be stored")
+
+	flag.BoolVar(&load_unused, "load-from-delete", false, "Load unused images from delete path")
 	flag.BoolVar(&dry_run, "dry-run", false, "Don't perform any destructive changes on disk")
 
 }
@@ -234,6 +246,7 @@ func updateIndexImages(repository string, image string) bool {
 			return false
 		}
 		if !dry_run {
+			p("Writing _indec_image for", repository)
 			err := ioutil.WriteFile(index_path, new_index, index_stat.Mode())
 			if err != nil {
 				fmt.Println("Failed to write _index_images for", repository, ":", err)
