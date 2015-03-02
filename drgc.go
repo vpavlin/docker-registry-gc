@@ -29,7 +29,7 @@ type StringSet struct {
 type index_images []index_images_item
 
 type index_images_item struct {
-	Id string `json: "id"`
+	Id string `json:"id"`
 }
 
 func main() {
